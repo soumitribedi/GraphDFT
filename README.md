@@ -1,6 +1,7 @@
-# GraphDFT: Graph Neural Networks for Density Functional Approximation (Demo version)
-GraphDFT is a PyTorch-based implementation of Graph Neural Networks (GNNs) for modeling exchange-correlation (XC) functionals in density functional theory (DFT).
+# GraphDFT: Graph Neural Networks for Density Functional Approximation (Demo Version)
+**GraphDFT** is a PyTorch-based implementation of Graph Neural Networks (GNNs) for modeling exchange-correlation (XC) functionals in density functional theory (DFT).
 
+> ⚠️ **Demo version:**
 This repository presents a demo version of the original codebase and is intended for showcasing model architecture and usage. Certain components such as proprietary data, full training scripts, or internal modules have been excluded for privacy and intellectual property reasons.
 
 # Overview
