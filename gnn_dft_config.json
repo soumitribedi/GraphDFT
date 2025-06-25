@@ -1,0 +1,34 @@
+
+{
+    "model": {
+        "embedding_size": 128,
+        "edge_hidden_size": 0,
+        "number_of_layers": 2,
+        "model_type": "GCN" // "NNSimple"
+    },
+    "training": {
+        "learning_rate": 0.0001,
+        "train_batch_size": 40,
+        "loss_factor": [1, 1],  //
+        "max_train_epoch": 50000,
+        "checkpt_interval": 5000,
+        "restart": false,
+        "restart_chkfile": "path/to/saved/checkpoint",
+        "KFold_CV": 0,
+        "repeat_train": 0
+    },
+    "data": {
+        "dataset_root_folder": "./data",
+        "dataset_folder": "dataset",
+        "dataset_file": "dataset.csv",
+        "train_ratio": 0.8,
+        "val_ratio": 0.1,
+        "nlm": ["100","211","210","21-1","322","321","320","32-1","32-2"],//,"300","32-2","32-1","320","321","322"],
+        "create_nlm": false,
+        "type": "v1" // v1 use PyG InMemoryDataset, v2 use torch dataset
+    },
+    "experiment": {
+        "seed": 42,
+        "log_dir":"./trials/May14"
+    }
+}
