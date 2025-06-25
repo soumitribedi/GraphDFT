@@ -29,6 +29,7 @@ Modern density functionals are limited by their local or semi-local nature. In t
 The core architecture uses Graph convolutional neural networks (GCN) and message passing layers to capture atomic interactions. The predicted outputs approximate the exchange-correlation energy as well as the potential using the automatic differentiation with PyTorch.
 
 # Project Structure
+```bash
 GraphDFT/
 ├── dataset/             # (Excluded) Local training/test data not included in this public repo
 ├── models/              # GNN model definitions
@@ -40,13 +41,13 @@ GraphDFT/
 
 # Getting Started
 ## Installation
+```bash
 git clone git@github.com:soumitribedi/GraphDFT.git
 cd GraphDFT
 pip install -r requirements.txt
 
 ## Example Usage
-python main.py
-
+```bash
 python main.py
 
 # Dataset
