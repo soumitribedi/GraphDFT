@@ -38,6 +38,7 @@ GraphDFT/
 ├── utils/               # Helper functions
 ├── requirements.txt     # Dependencies
 └── README.md
+```
 
 # Getting Started
 ## Installation
@@ -45,10 +46,12 @@ GraphDFT/
 git clone git@github.com:soumitribedi/GraphDFT.git
 cd GraphDFT
 pip install -r requirements.txt
+```
 
 ## Example Usage
 ```bash
 python main.py
+```
 
 # Dataset
 This project assumes access to molecular datasets with:
