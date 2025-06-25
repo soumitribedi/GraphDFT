@@ -3,58 +3,51 @@ import torch
 
 def read_geom_file(filename):
     """
-    Read a geometry file and parse atomic positions.
+    Parse a simple geometry file into a list of atomic symbols and coordinates.
 
-    Each line of the file is expected to contain an element symbol followed by
-    three Cartesian coordinates (x, y, z), separated by whitespace. For example:
-        H  0.00000  0.00000  0.00000
+    Each line of the file is expected to have the format:
+        Element X Y Z
+    where:
+      - Element is a chemical symbol (e.g., 'H', 'C', 'O').
+      - X, Y, Z are floating-point Cartesian coordinates.
 
-    Args:
-        filename (str): Path to the geometry file to read.
+    Parameters
+    ----------
+    filename : str
+        Path to the geometry file.
 
-    Returns:
-        List[Tuple[str, Tuple[float, float, float]]]:
-            A list of atoms, where each atom is represented as a tuple:
-            (element_symbol, (x, y, z)). Coordinates are Python floats.
+    Returns
+    -------
+    List[Tuple[str, Tuple[float, float, float]]]
+        A list where each entry is a tuple:
+        (element_symbol, (x, y, z)),
+        with coordinates returned as Python floats.
 
-    Raises:
-        FileNotFoundError: If the specified file cannot be opened.
-        ValueError: If any line does not have exactly four fields or if
-            coordinate values cannot be converted to float.
+    Raises
+    ------
+    ValueError
+        If any line does not have exactly four whitespace-separated fields
+        or if coordinate conversion to float fails.
+    IOError
+        If the file cannot be opened.
     """
     atoms = []
     with open(filename, 'r') as file:
-        for line in file:
+        for lineno, line in enumerate(file, start=1):
             parts = line.split()
+            if len(parts) != 4:
+                raise ValueError(f"Line {lineno}: expected 4 fields, got {len(parts)}")
             element = parts[0]
-            coords = torch.tensor([float(parts[1]), float(parts[2]), float(parts[3])], dtype=torch.float64)
-            atoms.append((element, tuple(coords.tolist())))
+            try:
+                x, y, z = float(parts[1]), float(parts[2]), float(parts[3])
+            except ValueError as e:
+                raise ValueError(f"Line {lineno}: could not parse coordinates") from e
+            coords = torch.tensor([x, y, z], dtype=torch.float64)
+            atoms.append((element, (x, y, z)))
     return atoms
 
+
 def read_descriptor_file(filename):
-    """
-    Read a CSV descriptor file and return per-atom descriptor tensors.
-
-    The file is expected to have a header row followed by rows where:
-      - Column 0 is the element symbol (e.g., "C", "H", "O").
-      - Column 1 may be the atomic number.
-      - Remaining columns are numeric descriptor values.
-
-    Each element occurrence is numbered sequentially (e.g., "C1", "C2", "H1", …),
-    and its corresponding descriptor vector is stored as a torch.float64 tensor.
-
-    Args:
-        filename (str): Path to the CSV file containing descriptors.
-
-    Returns:
-        Dict[str, torch.Tensor]: A dictionary mapping keys of the form
-        "<element><count>" (e.g., "C1", "O3") to a 1D torch.Tensor of dtype
-        torch.float64 containing the descriptor values for that atom.
-
-    Raises:
-        FileNotFoundError: If the specified file cannot be opened.
-        ValueError: If any descriptor value cannot be converted to float.
-    """
     descriptors = {}
     counts = {}
     with open(filename, 'r') as file:
