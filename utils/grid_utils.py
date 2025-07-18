@@ -21,6 +21,11 @@ def load_vxc_coordinates(file_name):
     --------
     coords : torch.Tensor
         A 2D tensor (torch.float64) with each row containing the (x, y, z) coordinates.
+
+    Raises:
+    -------
+    OSError
+        If `file_name` cannot be opened for reading.
     """
     coords_list = []
     with open(file_name, 'r') as f:
@@ -30,9 +35,12 @@ def load_vxc_coordinates(file_name):
                 continue
             try:
                 x, y, z = float(parts[0]), float(parts[1]), float(parts[2])
-                coords_list.append([x, y, z])
             except ValueError:
                 continue
+            coords_list.append([x, y, z])
+    if not coords_list:
+        # ensure a (0,3) tensor when no valid lines are found
+        return torch.empty((0, 3), dtype=torch.float64)
     coords = torch.tensor(coords_list, dtype=torch.float64)
     return coords
 
@@ -51,6 +59,11 @@ def load_density(file_name):
     --------
     values : torch.Tensor
         A 1D torch tensor (torch.float64) containing the density values from the fourth column.
+
+    Raises
+    ------
+    OSError
+        If `file_name` cannot be opened for reading.
     """
     density_list = []
     with open(file_name, 'r') as f:
@@ -75,15 +88,23 @@ def cartesian_to_spherical(x, y, z, device):
     -----------
     x, y, z : float, list, np.ndarray, or torch.Tensor
         Cartesian coordinates.
+    device : torch.device or str
+        Device on which the output tensors will be placed (e.g. "cpu" or "cuda").
 
     Returns:
     --------
-    tuple (r, theta, phi) : torch.Tensor
-        Spherical coordinates where:
-          r     : radial distance,
-          theta : polar angle (0 <= theta <= pi),
-          phi   : azimuthal angle (0 <= phi < 2*pi).
-        The results are returned as torch tensors with high precision (torch.float64).
+    r : torch.Tensor
+        Radial distance, r = sqrt(x² + y² + z²), dtype=torch.float64.
+    θ : torch.Tensor
+        Polar angle, θ = arccos(z / r), range [0, π]. If r = 0, θ = NaN.
+    φ : torch.Tensor
+        Azimuthal angle, φ = atan2(y, x), range (−π, π]. If (x,y) = (0,0),
+        φ = 0 by convention.
+
+    Notes
+    -----
+    - At the origin, r = 0 → θ is NaN (0/0) and φ = 0 (atan2(0,0)).
+    - All inputs are cast to torch.float64.
     """
     if not torch.is_tensor(x):
         x = torch.tensor(x, dtype=torch.float64,device=device)
@@ -110,20 +131,34 @@ def real_spherical_harmonics_on_grid(l, m, x, y, z, device):
     Compute the real spherical harmonics Y_l^m on a grid of Cartesian coordinates 
     and return the result as a torch tensor in double precision.
 
+    The real spherical harmonics are constructed from SciPy’s complex sph_harm:
+      • m > 0 :  Yₗᵐ = √2 · (−1)ᵐ · Im[ Yₗᵐ(complex) ]
+      • m < 0 :  Yₗᵐ = √2 · (−1)ᵐ · Re[ Yₗ|m|(complex) ]
+      • m = 0 :  Yₗ⁰ =    Re[ Yₗ⁰(complex) ]
+
     Parameters:
     -----------
     l : int
-        Degree of the spherical harmonic.
+        Degree (l ≥ 0).
     m : int
-        Order of the spherical harmonic.
-    x, y, z : np.ndarray or torch.Tensor
-        Cartesian coordinates of the grid points.
+        Order (−l ≤ m ≤ l).
+    x, y, z : scalar, sequence, numpy.ndarray, or torch.Tensor
+        Cartesian coordinates; must be broadcastable to a common shape.
+    device : torch.device or str
+        Device for the output tensor (e.g. 'cpu' or 'cuda').
 
     Returns:
     --------
     torch.Tensor
         The real spherical harmonic Y_l^m evaluated at each grid point,
         returned as a torch tensor with dtype=torch.float64.
+
+    Raises
+    ------
+    RuntimeError
+        If x, y, z cannot be broadcast together.
+    OSError
+        If SciPy’s sph_harm isn’t available.
     """
     from scipy.special import sph_harm
 
